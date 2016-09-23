@@ -8,14 +8,13 @@ struct Node{
 typedef struct Pilha{
     link top;
 } * pilha;
-
+// cria pilha
 pilha criaPilha(){
-    pilha p;
-    p = malloc(sizeof(pilha));
+    pilha p = malloc(sizeof(pilha));
     p->top = NULL;
     return p;
 }
-
+//empilha
 void push(pilha t, int n){
     link temp;
     temp = malloc(sizeof(link));
@@ -30,13 +29,13 @@ void push(pilha t, int n){
         t->top = temp;
     }
 }
-
-void pop(pilha t){
-    link temp = t;
+// desempilha
+int pop(pilha t){
+    link temp = t->top;
+    int valor = temp->nro;
     if(t->top != NULL)
         t->top = t->top->next;
-    else
-        puts("pilha vazia");
+    return valor;
 }
 
 int imprime(pilha f){
@@ -61,6 +60,108 @@ int bemEncaixado(char* s){
     return r;
 }
 
+int topo(pilha p){
+	return p->top->nro;
+}
+
+
+/* Transforma a notação infixa para a notação posfixa */
+int infixoParaPosfixo (char * entrada, char * saida, int n)
+{
+    pilha p = criaPilha();
+    int i, k;
+    int j = 0;
+    char c;
+    push(p, '(');
+    for (i = 0; entrada[i] != '\0' &&  i < n; i++)
+        {
+            if((j-1 > 0) && (saida[j-1] != ' '))
+                saida[j++]  = ' ';
+            if(entrada[i] == '(') {
+                push(p, entrada[i]);
+            } else if(entrada[i] == ')'){
+                while (1) {
+                    c = pop(p);
+                    if(c == '(') break;
+                    saida[j++] = c;
+                    saida[j++] = ' ';
+                }
+            } else if((entrada[i] == '+') || (entrada[i] == '-')){
+                while (1) {
+                    c = topo(p);
+                    if(c == '(') break;
+                    pop(p);
+                    saida[j++] = c;
+                    saida[j++] = ' ';
+                }
+                push(p, entrada[i]);
+            } else if((entrada[i] == '*') || (entrada[i] == '/')) {
+                while (1) {
+                    c = topo(p);
+                    if(c == '(' || c == '+' || c == '-'  ) break;
+                    pop(p);
+                    saida[j++] = c;
+                    saida[j++] = ' ';
+                }
+                push(p, entrada[i]);
+            } else if (entrada[i] >= '0' && entrada[i] <= '9') {
+                while (entrada[i] >= '0' && entrada[i] <= '9') {
+                    saida[j++] = entrada[i];
+                    i++;
+                }
+                saida[j++] = ' ';
+                i--;
+            }
+
+        }
+    while (1) {
+        c = pop(p);
+        if(c == '(') break;
+        saida[j++] = c;
+        saida[j++] = ' ';
+    }
+    saida[j] = '\0';
+    return 0;
+}
+
+int calcula ( char * s ) {
+    int i = 0;
+    int d = 0,k;
+    int numero = 0;
+    pilha p = criaPilha();
+    int resultado ;
+    int a,b;
+    while  (s[i] != '\0') {
+        if(s[i] >= '0' && s[i] <= '9' ) {
+            sscanf(&s[i], "%d", & numero);
+            while(s[i] >= '0' && s[i] <= '9')
+                i++;
+            i--;
+            push(p, numero);
+        } else if (s[i] == '+') {
+            b = pop(p);
+            a = pop(p);
+            push (p, a + b);
+        } else if (s[i] == '-') {
+            b = pop(p);
+            a = pop(p);
+            push (p, a - b);
+        } else if (s[i] == '*') {
+            b = pop(p);
+            a = pop(p);
+            push (p, a * b);
+        } else if (s[i] == '/') {
+            b = pop(p);
+            a = pop(p);
+            push (p, a/b);
+        }
+        i++;
+    }
+
+    resultado = topo(p);
+    return resultado;
+}
+
 
 int main(){
     char infixo[255] ;
@@ -74,10 +175,11 @@ int main(){
             return 0;
         }
         if(bemEncaixado(infixo)){
-            printf("%s", infixo);
+              infixoParaPosfixo(infixo, posfixo, 255);
+              printf("%d\n", calcula(posfixo));
         }
         else
-            puts("Parenteses mal formado");
+            puts("Parentesis mal formado");
     }
     return 0;
 }
